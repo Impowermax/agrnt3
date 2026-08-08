@@ -1,0 +1,81 @@
+/* ============================================================
+   PIMS 设计令牌（Design Tokens）
+   来源：《前端设计规范 V1.0》第 2 章视觉风格 / 8.2 CSS 变量定义
+   ============================================================ */
+:root {
+  /* 品牌主色 */
+  --pims-primary: #2563eb;
+  --pims-primary-hover: #1d4ed8;
+  --pims-primary-light: #eff6ff;
+
+  /* 语义色 */
+  --pims-success: #10b981;
+  --pims-warning: #f59e0b;
+  --pims-danger: #ef4444;
+  --pims-info: #3b82f6;
+
+  /* 图表色（顺序使用） */
+  --pims-chart-1: #2563eb;
+  --pims-chart-2: #ef4444;
+  --pims-chart-3: #10b981;
+  --pims-chart-4: #8b5cf6;
+  --pims-chart-5: #6b7280;
+
+  /* 中性灰阶 */
+  --pims-text-primary: #1f2937;
+  --pims-text-secondary: #4b5563;
+  --pims-text-tertiary: #9ca3af;
+  --pims-text-quaternary: #d1d5db;
+  --pims-border: #e5e7eb;
+  --pims-surface: #f3f4f6;
+  --pims-surface-muted: #f9fafb;
+
+  /* 间距（4px 基准等差数列） */
+  --pims-space-1: 4px;
+  --pims-space-2: 8px;
+  --pims-space-3: 12px;
+  --pims-space-4: 16px;
+  --pims-space-5: 20px;
+  --pims-space-6: 24px;
+  --pims-space-8: 32px;
+
+  /* 圆角 */
+  --pims-radius-sm: 4px;
+  --pims-radius-md: 8px;
+  --pims-radius-lg: 10px;
+  --pims-radius-xl: 12px;
+
+  /* 阴影 */
+  --pims-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --pims-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --pims-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* 字体 */
+  --pims-font-sans: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --pims-font-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
+
+  /* 侧边栏 */
+  --pims-sidebar-bg: #111c30;
+  --pims-sidebar-width: 232px;
+  --pims-header-height: 60px;
+
+  /* Element Plus 主题覆盖（CSS 变量方式，规范 8.1） */
+  --el-color-primary: var(--pims-primary);
+  --el-color-success: var(--pims-success);
+  --el-color-warning: var(--pims-warning);
+  --el-color-danger: var(--pims-danger);
+  --el-color-error: var(--pims-danger);
+  --el-color-info: var(--pims-info);
+  --el-border-radius-base: var(--pims-radius-md);
+  --el-border-radius-small: var(--pims-radius-sm);
+  --el-border-color: var(--pims-border);
+  --el-border-color-light: var(--pims-border);
+  --el-border-color-lighter: var(--pims-border);
+  --el-text-color-primary: var(--pims-text-primary);
+  --el-text-color-regular: var(--pims-text-secondary);
+  --el-text-color-secondary: var(--pims-text-tertiary);
+  --el-text-color-placeholder: var(--pims-text-tertiary);
+  --el-bg-color-page: var(--pims-surface);
+  --el-font-family: var(--pims-font-sans);
+  --el-box-shadow-light: var(--pims-shadow-md);
+}

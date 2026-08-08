@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识库 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="notice-bar">
+        知识库展示<b>固定资产投资项目全生命周期管理流程</b>的标准内容（工作要求、法律政策制度依据、注意事项、潜在风险），由内容审核员统一维护，<b>只读展示</b>，不支持用户直接录入或修改。
+      </div>
+
+      <div class="kb-layout">
+        <div class="stage-nav" id="stageNav"></div>
+        <div>
+          <div class="card" style="padding:16px 20px">
+            <span class="text-sm" id="crumbStage"></span>
+            <div style="font-size:16px;font-weight:600;margin-top:4px" id="crumbStep"></div>
+          </div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#1e6fff"></span>工作要求</div>
+            <div class="ss-body" id="secReq"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#722ed1"></span>法律政策制度依据</div>
+            <div class="ss-body" id="secLaw"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#e37318"></span>注意事项</div>
+            <div class="ss-body" id="secNotice"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#d54941"></span>潜在风险</div>
+            <div class="ss-body" id="secRisk"></div></div>
+
+          <div class="card">
+            <div class="card-title"><span>相关制度文件（在线学习参考）</span>
+              <button class="btn sm extra" onclick="toast('制度文件由系统管理员统一上传（演示）')">⇧ 上传文件</button></div>
+            <table class="table">
+              <thead><tr><th>文件名称</th><th>分类</th><th>大小</th><th>上传时间</th><th>操作</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("knowledge", "知识库 / 全生命周期管理流程");
+
+let curStage = 1, curStep = 0;
+
+document.querySelector(".table tbody").innerHTML = POLICY_FILES.map(f => `
+  <tr>
+    <td>📄 ${f.name}</td><td><span class="tag">${f.cat}</span></td>
+    <td>${f.size}</td><td>${f.date}</td>
+    <td><button class="btn text sm" onclick="toast('开始下载：${f.name}（演示）')">下载</button>
+        <button class="btn text sm" onclick="toast('在线预览（演示）')">预览</button></td>
+  </tr>`).join("");
+
+function renderNav() {
+  document.getElementById("stageNav").innerHTML = STAGES.map(s => `
+    <div class="sn-stage">
+      <div class="sn-head" onclick="pickStage(${s.id})">
+        <span class="no">${s.id}</span><span>${s.name}</span>
+      </div>
+      ${s.id === curStage ? `<div class="sn-steps">${s.steps.map((sp, i) =>
+        `<div class="sn-step ${i === curStep ? "active" : ""}" onclick="pickStep(${i})">${sp.name}</div>`).join("")}</div>` : ""}
+    </div>`).join("");
+}
+function pickStage(id) { curStage = id; curStep = 0; refresh(); }
+function pickStep(i) { curStep = i; refresh(); }
+function refresh() {
+  renderNav();
+  const s = stageById(curStage), step = s.steps[curStep];
+  document.getElementById("crumbStage").textContent = `第 ${s.id} 阶段 · ${s.name}`;
+  document.getElementById("crumbStep").textContent = step.name;
+  fill("secReq", step.req); fill("secLaw", step.law);
+  fill("secNotice", step.notice); fill("secRisk", step.risk);
+}
+function fill(id, txt) {
+  const el = document.getElementById(id);
+  if (txt) { el.textContent = txt; } else { el.innerHTML = `<span class="empty">暂未维护</span>`; }
+}
+refresh();
+</script>
+</body>
+</html>

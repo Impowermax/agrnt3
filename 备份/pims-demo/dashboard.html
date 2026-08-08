@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BI 看板 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div class="chart-grid">
+        <div class="chart-box"><h3>项目状态分布</h3><div id="cStatus"></div></div>
+        <div class="chart-box"><h3>投资金额统计（万元）</h3><div id="cAmount"></div></div>
+        <div class="chart-box"><h3>各项目进度跟踪（当前所处阶段 / 12）</h3><div id="cProgress"></div></div>
+        <div class="chart-box"><h3>问题分布 · 按项目阶段</h3><div id="cProbStage"></div></div>
+        <div class="chart-box"><h3>问题分布 · 按关键环节占比</h3><div id="cProbStep"></div></div>
+        <div class="chart-box"><h3>问题录入趋势（2026 年）</h3><div id="cTrend"></div></div>
+      </div>
+
+      <div class="card mt16">
+        <div class="card-title">问题易发阶段提示</div>
+        <div style="font-size:13px;line-height:2;color:var(--text-2)">
+          根据历史问题数据统计：<b style="color:var(--danger)">施工前准备（33.3%）</b>与<b style="color:var(--warning)">招标与合同管理（22.2%）</b>为问题高发阶段，
+          其中「工程量清单」「合同签订」环节问题最为集中。建议项目实施单位在对应环节重点对照知识库注意事项与问题库案例，提前规避风险。
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script src="assets/js/charts.js"></script>
+<script>
+renderLayout("dashboard", "BI 看板");
+
+/* 统计卡片 */
+const total = PROJECTS.length;
+const sum = k => PROJECTS.filter(p => p.status === k).reduce((s, p) => s + p.amount, 0);
+const totalAmt = PROJECTS.reduce((s, p) => s + p.amount, 0);
+document.getElementById("statGrid").innerHTML = [
+  { k: "投资项目总数量", v: total, u: "个", ico: "▤", bg: "#e8f0ff" },
+  { k: "项目总投资金额", v: fmtAmount(totalAmt), u: "万元", ico: "¥", bg: "#e6f6ef" },
+  { k: "在建项目 / 金额", v: PROJECTS.filter(p=>p.status==="在建项目").length + " 个 / " + fmtAmount(sum("在建项目")), u: "万元", ico: "🚧", bg: "#fdf1e7" },
+  { k: "问题总数（已公开）", v: PROBLEMS.length, u: "条", ico: "⚠", bg: "#fdeceb" }
+].map(s => `<div class="stat-card"><div class="icon" style="background:${s.bg}">${s.ico}</div>
+  <div><div class="v" style="font-size:${String(s.v).length > 8 ? 17 : 24}px">${s.v}<small>${s.u}</small></div><div class="k">${s.k}</div></div></div>`).join("");
+
+/* 状态分布 */
+donutChart(document.getElementById("cStatus"),
+  PROJECT_STATUS.map(s => ({ name: s, value: PROJECTS.filter(p => p.status === s).length })),
+  { centerLabel: "项目总数" });
+
+/* 金额：按状态统计 计划/概算/实际（演示口径） */
+groupBarChart(document.getElementById("cAmount"),
+  PROJECT_STATUS,
+  [ { name: "投资计划", color: "#1e6fff", data: PROJECT_STATUS.map(s => sum(s)) },
+    { name: "批复概算", color: "#00c6ff", data: PROJECT_STATUS.map(s => Math.round(sum(s) * 0.97)) },
+    { name: "实际投资", color: "#2ba471", data: PROJECT_STATUS.map(s => Math.round(sum(s) * (s === "建设完毕" ? 0.94 : 0.31))) } ],
+  { height: 230 });
+
+/* 项目进度 */
+hbarChart(document.getElementById("cProgress"),
+  PROJECTS.slice(0, 8).map(p => ({ name: p.name.length > 12 ? p.name.slice(0, 12) + "…" : p.name, value: p.stageId })),
+  { unit: " 阶段", labelW: 150, valW: 60 });
+
+/* 问题按阶段 */
+const probByStage = STAGES.map(s => ({ name: s.name, value: PROBLEMS.filter(p => p.stageId === s.id).length }))
+  .filter(d => d.value > 0);
+vbarChart(document.getElementById("cProbStage"), probByStage, { height: 230 });
+
+/* 问题按环节占比 */
+const stepMap = {};
+PROBLEMS.forEach(p => { stepMap[p.step] = (stepMap[p.step] || 0) + 1; });
+donutChart(document.getElementById("cProbStep"),
+  Object.entries(stepMap).map(([name, value]) => ({ name, value })),
+  { centerLabel: "问题总数", size: 190 });
+
+/* 趋势 */
+lineChart(document.getElementById("cTrend"), [
+  { name: "1月", value: 1 }, { name: "2月", value: 0 }, { name: "3月", value: 1 },
+  { name: "4月", value: 2 }, { name: "5月", value: 1 }, { name: "6月", value: 2 }, { name: "7月", value: 2 }
+]);
+</script>
+</body>
+</html>

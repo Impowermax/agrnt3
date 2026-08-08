@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统管理 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="card">
+        <div class="tabs" id="adminTabs">
+          <div class="tab active" data-t="cat" onclick="switchT(this)">项目类别管理</div>
+          <div class="tab" data-t="stage" onclick="switchT(this)">阶段 / 节点 / 事项配置</div>
+          <div class="tab" data-t="field" onclick="switchT(this)">字段配置管理</div>
+          <div class="tab" data-t="review" onclick="switchT(this)">内容审核管理<span class="cnt">3</span></div>
+          <div class="tab" data-t="user" onclick="switchT(this)">用户与权限管理</div>
+          <div class="tab" data-t="file" onclick="switchT(this)">制度文件管理</div>
+        </div>
+
+        <!-- 项目类别 -->
+        <div class="pane" id="pane-cat">
+          <div class="flex-between mb16">
+            <span class="text-sm">支持投资项目类别的修改、增减；创建项目时按类别自动关联全生命周期流程模板。</span>
+            <button class="btn primary sm" onclick="toast('新增类别（演示）')">＋ 新增类别</button>
+          </div>
+          <table class="table">
+            <thead><tr><th>类别名称</th><th>流程模板</th><th>阶段数</th><th>项目数</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>固定资产投资项目</td><td>工程建设项目全生命周期管理流程</td><td>12</td><td>8</td><td><span class="tag green">启用</span></td>
+                <td><button class="btn text sm" onclick="toast('编辑类别（演示）')">编辑</button><button class="btn text sm danger" onclick="toast('停用前需确认无在办项目（演示）')">停用</button></td></tr>
+              <tr><td>信息化投资项目</td><td>信息化项目全生命周期管理流程</td><td>9</td><td>4</td><td><span class="tag green">启用</span></td>
+                <td><button class="btn text sm" onclick="toast('编辑类别（演示）')">编辑</button><button class="btn text sm danger" onclick="toast('停用前需确认无在办项目（演示）')">停用</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 阶段配置 -->
+        <div class="pane" id="pane-stage" style="display:none">
+          <div class="flex-between mb16">
+            <span class="text-sm">对项目类型的阶段、节点、事项进行修改、增减，支持调整阶段顺序（拖拽 / 上下移动）。</span>
+            <div class="flex">
+              <select class="select" style="width:200px"><option>固定资产投资项目</option><option>信息化投资项目</option></select>
+              <button class="btn primary sm" onclick="toast('新增阶段（演示）')">＋ 新增阶段</button>
+            </div>
+          </div>
+          <table class="table">
+            <thead><tr><th>顺序</th><th>项目阶段</th><th>关键环节 / 实施步骤</th><th>环节数</th><th>操作</th></tr></thead>
+            <tbody id="stageCfgBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 字段配置 -->
+        <div class="pane" id="pane-field" style="display:none">
+          <div class="flex-between mb16">
+            <span class="text-sm">对环节内容字段进行修改、增减，支持自定义扩展字段。</span>
+            <button class="btn primary sm" onclick="toast('新增自定义字段（演示）')">＋ 新增字段</button>
+          </div>
+          <table class="table">
+            <thead><tr><th>字段名称</th><th>说明</th><th>来源</th><th>是否必填</th><th>前台展示</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>工作要求</td><td>关键节点、必要事项的详细说明和规范要求</td><td>知识库维护</td><td><span class="tag">必填</span></td><td><span class="tag green">展示</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+              <tr><td>法律政策制度依据</td><td>相关法律法规、行业制度条文</td><td>知识库维护</td><td><span class="tag">必填</span></td><td><span class="tag green">展示</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+              <tr><td>注意事项</td><td>实施过程中的注意要点</td><td>知识库维护</td><td><span class="tag gray">选填</span></td><td><span class="tag green">展示</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+              <tr><td>潜在风险</td><td>该环节可能出现的风险点</td><td>知识库维护</td><td><span class="tag gray">选填</span></td><td><span class="tag green">展示</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+              <tr><td>实施情况</td><td>实施单位实时录入的实际执行情况</td><td>项目实施单位录入</td><td><span class="tag gray">非强制</span></td><td><span class="tag gray">不公开</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+              <tr><td>问题库</td><td>该环节已审核通过的问题记录</td><td>单位录入 + 审核</td><td><span class="tag gray">—</span></td><td><span class="tag green">展示</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+              <tr><td>经验共享</td><td>该环节已审核通过的经验记录</td><td>单位录入 + 审核</td><td><span class="tag gray">—</span></td><td><span class="tag green">展示</span></td><td><button class="btn text sm" onclick="toast('编辑字段（演示）')">编辑</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 内容审核 -->
+        <div class="pane" id="pane-review" style="display:none">
+          <div class="flex-between mb16">
+            <span class="text-sm">问题库、经验库内容须经审核通过后才可在前台展示；支持审核通过 / 驳回与审核记录查询。</span>
+            <select class="select" style="width:160px"><option>待审核（3）</option><option>已通过</option><option>已驳回</option></select>
+          </div>
+          <table class="table">
+            <thead><tr><th>类型</th><th>内容摘要</th><th>关联项目</th><th>所属环节</th><th>提交人</th><th>提交时间</th><th>操作</th></tr></thead>
+            <tbody id="reviewBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 用户权限 -->
+        <div class="pane" id="pane-user" style="display:none">
+          <div class="flex-between mb16">
+            <span class="text-sm">用户账号管理（增删改查）、角色权限配置、操作日志记录。数据隔离：实施单位默认仅可查看本单位项目。</span>
+            <button class="btn primary sm" onclick="toast('新增用户（演示）')">＋ 新增用户</button>
+          </div>
+          <table class="table">
+            <thead><tr><th>姓名</th><th>账号</th><th>角色</th><th>所属单位</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="userBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 制度文件 -->
+        <div class="pane" id="pane-file" style="display:none">
+          <div class="flex-between mb16">
+            <span class="text-sm">上传、更新、删除相关制度文件，支持文件分类管理，供全员学习参考。</span>
+            <button class="btn primary sm" onclick="toast('选择文件上传（演示）')">⇧ 上传文件</button>
+          </div>
+          <table class="table">
+            <thead><tr><th>文件名称</th><th>分类</th><th>大小</th><th>上传人</th><th>上传时间</th><th>操作</th></tr></thead>
+            <tbody id="fileBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("admin", "系统管理");
+
+function switchT(el) {
+  document.querySelectorAll("#adminTabs .tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  document.querySelectorAll(".pane").forEach(p => p.style.display = "none");
+  document.getElementById("pane-" + el.dataset.t).style.display = "";
+}
+
+/* 阶段配置 */
+document.getElementById("stageCfgBody").innerHTML = STAGES.map(s => `
+  <tr>
+    <td>${s.id}</td><td><b>${s.name}</b></td>
+    <td>${s.steps.map(sp => `<span class="tag gray" style="margin:2px 4px 2px 0">${sp.name}</span>`).join("")}</td>
+    <td>${s.steps.length}</td>
+    <td><button class="btn text sm" onclick="toast('编辑阶段（演示）')">编辑</button>
+        <button class="btn text sm" onclick="toast('上移（演示）')">↑</button>
+        <button class="btn text sm" onclick="toast('下移（演示）')">↓</button></td>
+  </tr>`).join("");
+
+/* 内容审核 */
+document.getElementById("reviewBody").innerHTML = PENDING_REVIEWS.map(r => `
+  <tr>
+    <td><span class="tag ${r.type === "问题" ? "orange" : "green"}">${r.type}</span></td>
+    <td style="max-width:300px">${r.title}</td>
+    <td>${r.project}</td><td>${r.step}</td><td>${r.submitter}</td><td>${r.date}</td>
+    <td><button class="btn text sm" onclick="toast('已审核通过并公开（演示）')">通过</button>
+        <button class="btn text sm danger" onclick="toast('已驳回并通知提交人（演示）')">驳回</button></td>
+  </tr>`).join("");
+
+/* 用户 */
+document.getElementById("userBody").innerHTML = USERS.map(u => `
+  <tr>
+    <td>${u.name}</td><td>${u.account}</td>
+    <td><span class="tag ${u.role === "系统管理员" ? "red" : u.role === "内容审核员" ? "orange" : ""}">${u.role}</span></td>
+    <td>${u.org}</td>
+    <td><span class="tag ${u.status === "启用" ? "green" : "gray"}">${u.status}</span></td>
+    <td><button class="btn text sm" onclick="toast('编辑用户（演示）')">编辑</button>
+        <button class="btn text sm" onclick="toast('重置密码（演示）')">重置密码</button></td>
+  </tr>`).join("");
+
+/* 文件 */
+document.getElementById("fileBody").innerHTML = POLICY_FILES.map(f => `
+  <tr>
+    <td>📄 ${f.name}</td><td><span class="tag">${f.cat}</span></td><td>${f.size}</td>
+    <td>${f.uploader}</td><td>${f.date}</td>
+    <td><button class="btn text sm" onclick="toast('下载（演示）')">下载</button>
+        <button class="btn text sm" onclick="toast('更新版本（演示）')">更新</button>
+        <button class="btn text sm danger" onclick="toast('删除需二次确认（演示）')">删除</button></td>
+  </tr>`).join("");
+</script>
+</body>
+</html>

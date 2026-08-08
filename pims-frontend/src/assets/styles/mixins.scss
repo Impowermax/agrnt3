@@ -1,0 +1,59 @@
+/* PIMS SCSS 混合宏（规范 8.3） */
+
+// 弹性布局居中
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 文字省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文字省略
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// 滚动条样式
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--pims-text-quaternary);
+    border-radius: var(--pims-radius-sm);
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+// 卡片基础样式
+@mixin card-base {
+  background: #fff;
+  border: 1px solid var(--pims-border);
+  border-radius: var(--pims-radius-lg);
+  padding: var(--pims-space-4);
+}
+
+// 响应式断点（规范 8.4）
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == sm {
+    @media (max-width: 640px) { @content; }
+  } @else if $breakpoint == md {
+    @media (max-width: 768px) { @content; }
+  } @else if $breakpoint == lg {
+    @media (max-width: 1024px) { @content; }
+  } @else if $breakpoint == xl {
+    @media (max-width: 1280px) { @content; }
+  }
+}

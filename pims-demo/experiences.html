@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经验库 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="card">
+        <div class="filter-bar">
+          <div class="field"><label>关键字搜索</label>
+            <input class="input" id="fKw" placeholder="经验内容模糊匹配，如：清单、验收、台账"></div>
+          <div class="field"><label>项目阶段</label>
+            <select class="select" id="fStage"><option value="">全部阶段</option></select></div>
+          <div class="field"><label>关键环节 / 实施步骤</label>
+            <select class="select" id="fStep"><option value="">全部环节</option></select></div>
+          <button class="btn primary" onclick="render()">查 询</button>
+          <button class="btn" onclick="resetF()">重 置</button>
+          <div class="grow"></div>
+          <span class="text-sm">仅展示<b>已审核通过</b>并公开的经验做法 · 共 <b id="cnt"></b> 条</span>
+        </div>
+      </div>
+
+      <div class="qa-grid" id="grid"></div>
+      <div id="emptyBox"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 经验详情弹窗 -->
+<div class="modal-mask" id="detailModal">
+  <div class="modal">
+    <div class="m-head">经验详情<button class="m-close" onclick="closeModal('detailModal')">×</button></div>
+    <div class="m-body" id="dmBody"></div>
+    <div class="m-foot"><button class="btn" onclick="closeModal('detailModal')">关 闭</button></div>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("experiences", "经验库（经验共享）");
+
+document.getElementById("fStage").innerHTML += STAGES.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+function rebuildSteps() {
+  const sid = +document.getElementById("fStage").value;
+  const steps = sid ? stageById(sid).steps.map(s => s.name) : [...new Set(EXPERIENCES.map(e => e.step))];
+  document.getElementById("fStep").innerHTML = `<option value="">全部环节</option>` + steps.map(s => `<option>${s}</option>`).join("");
+}
+document.getElementById("fStage").addEventListener("change", () => { rebuildSteps(); render(); });
+rebuildSteps();
+
+function resetF() {
+  document.getElementById("fKw").value = "";
+  document.getElementById("fStage").value = "";
+  rebuildSteps(); render();
+}
+function render() {
+  const kw = document.getElementById("fKw").value.trim();
+  const sid = document.getElementById("fStage").value;
+  const step = document.getElementById("fStep").value;
+  const list = EXPERIENCES.filter(e =>
+    (!kw || e.title.includes(kw) || e.desc.includes(kw)) &&
+    (!sid || e.stageId === +sid) && (!step || e.step === step));
+  document.getElementById("cnt").textContent = list.length;
+  document.getElementById("grid").innerHTML = list.map(e => `
+    <div class="qa-card" onclick="showDetail(${e.id})">
+      <div class="meta">
+        <span class="tag">${e.stage}</span><span class="tag green">${e.step}</span>
+      </div>
+      <div style="font-size:14.5px;font-weight:600">✦ ${e.title}</div>
+      <div class="desc">${e.desc}</div>
+      <div class="foot"><span>关联项目：${e.project}</span><span>${e.date}</span></div>
+    </div>`).join("");
+  document.getElementById("emptyBox").innerHTML = list.length ? "" :
+    `<div class="card empty-box">未检索到相关经验记录，请调整检索条件</div>`;
+}
+function showDetail(id) {
+  const e = EXPERIENCES.find(x => x.id === id);
+  document.getElementById("dmBody").innerHTML = `
+    <div style="font-size:16px;font-weight:600;margin-bottom:12px">✦ ${e.title}</div>
+    <div class="meta-row"><span class="k">所属阶段</span><span class="tag">${e.stage}</span>
+      <span class="k">关键环节</span><span class="tag green">${e.step}</span></div>
+    <div class="meta-row"><span class="k">关联项目</span><span>${e.project}</span></div>
+    <div class="meta-row"><span class="k">录入时间</span><span>${e.date}</span>
+      <span class="k">审核状态</span><span class="tag green">审核通过 · 已公开</span></div>
+    <div class="divider"></div>
+    <div style="line-height:2">${e.desc}</div>`;
+  openModal("detailModal");
+}
+render();
+</script>
+</body>
+</html>

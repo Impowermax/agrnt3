@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目详情 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <!-- 项目概要 -->
+      <div class="card">
+        <div class="flex-between mb16">
+          <div style="font-size:17px;font-weight:600" id="pName"></div>
+          <div class="flex">
+            <span class="tag" id="pStatus"></span>
+            <button class="btn sm" onclick="toast('导出功能演示：已生成项目全周期报告（Excel）')">⇩ 导出项目报告</button>
+          </div>
+        </div>
+        <div class="desc-list" id="pMeta"></div>
+        <div class="divider"></div>
+        <div class="flex mb8"><b style="font-size:13px">全生命周期进度</b>
+          <span class="text-sm" id="pctText"></span></div>
+        <div class="lifecycle" id="lifecycle"></div>
+      </div>
+
+      <div class="kb-layout">
+        <!-- 阶段导航 -->
+        <div class="stage-nav" id="stageNav"></div>
+
+        <!-- 环节详情 -->
+        <div>
+          <div class="card" style="padding:16px 20px">
+            <div class="flex-between">
+              <div>
+                <span class="text-sm" id="crumbStage"></span>
+                <div style="font-size:16px;font-weight:600;margin-top:4px" id="crumbStep"></div>
+              </div>
+              <div class="flex">
+                <button class="btn sm" onclick="openSubmit('问题')">⚠ 提交问题</button>
+                <button class="btn sm" onclick="openSubmit('经验')">✦ 提交经验</button>
+                <button class="btn primary sm" onclick="document.getElementById('implBox').scrollIntoView({behavior:'smooth'})">＋ 录入实施情况</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#1e6fff"></span>工作要求</div>
+            <div class="ss-body" id="secReq"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#722ed1"></span>法律政策制度依据</div>
+            <div class="ss-body" id="secLaw"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#e37318"></span>注意事项</div>
+            <div class="ss-body" id="secNotice"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#d54941"></span>潜在风险</div>
+            <div class="ss-body" id="secRisk"></div></div>
+
+          <div class="step-section" id="implBox">
+            <div class="ss-head"><span class="dot-ico" style="background:#2ba471"></span>实施情况（实时录入）
+              <span class="text-sm" style="margin-left:auto">非强制 · 支持富文本、图片、附件</span></div>
+            <div class="ss-body">
+              <div id="implList"></div>
+              <textarea class="textarea" id="implInput" rows="3" placeholder="录入本环节实际执行情况，如完成时间、办理结果、留存资料说明等…"></textarea>
+              <div class="flex mt8">
+                <button class="btn sm" onclick="toast('已添加图片（演示）')">📷 图片</button>
+                <button class="btn sm" onclick="toast('已添加附件（演示）')">📎 附件</button>
+                <div class="grow"></div>
+                <button class="btn primary sm" onclick="saveImpl()">保存实施记录</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#f7b500"></span>问题库（本环节已公开问题）</div>
+            <div class="ss-body" id="secProblems"></div></div>
+          <div class="step-section"><div class="ss-head"><span class="dot-ico" style="background:#13c2c2"></span>经验共享（本环节已公开经验）</div>
+            <div class="ss-body" id="secExps"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 提交问题/经验弹窗 -->
+<div class="modal-mask" id="submitModal">
+  <div class="modal">
+    <div class="m-head"><span id="smTitle">提交问题</span><button class="m-close" onclick="closeModal('submitModal')">×</button></div>
+    <div class="m-body">
+      <div class="notice-bar">提交后进入<b>待审核</b>状态，经内容审核员审核通过后将在问题库 / 经验库公开展示。请勿录入涉密或敏感信息。</div>
+      <div class="form-item mb16"><label>所属环节</label><input class="input" id="smStep" readonly></div>
+      <div class="form-item mb16" id="smTitleBox" style="display:none"><label><span class="req">*</span>经验标题</label>
+        <input class="input" placeholder="请输入经验标题"></div>
+      <div class="form-item"><label><span class="req">*</span><span id="smLabel">问题描述</span></label>
+        <textarea class="textarea" rows="5" placeholder="请客观描述事实经过、造成的影响及后续处理情况"></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" onclick="closeModal('submitModal')">取 消</button>
+      <button class="btn primary" onclick="doSubmit()">提交审核</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("projects", "项目管理 / 项目详情");
+
+const P = DEMO_PROJECT;
+let curStage = P.stageId, curStep = 0;
+
+/* 概要 */
+document.getElementById("pName").textContent = P.name;
+const st = document.getElementById("pStatus");
+st.textContent = P.status; st.className = "tag " + statusTagClass(P.status);
+document.getElementById("pMeta").innerHTML = [
+  ["项目类型", P.type], ["实施单位", "市公司项目管理办公室"],
+  ["投资金额", fmtAmount(P.amount) + " 万元"], ["立项时间", P.date],
+  ["项目负责人", P.manager], ["当前阶段", "第 " + P.stageId + " 阶段 · " + P.stage]
+].map(([k, v]) => `<div class="di"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+
+/* 时间轴 */
+const pct = Math.round(P.stageId / 12 * 100);
+document.getElementById("pctText").textContent = `已完成 ${P.stageId - 1} / 12 阶段（${pct}%）`;
+function renderLifecycle() {
+  document.getElementById("lifecycle").innerHTML = STAGES.map(s => {
+    const cls = s.id < P.stageId ? "done" : s.id === P.stageId ? "current" : "";
+    return `<div class="lc-stage ${cls} ${s.id === curStage ? "sel" : ""}" onclick="pickStage(${s.id})" title="${s.name}">
+      <span class="dot"></span><div class="nm">${s.id}. ${s.name}</div></div>`;
+  }).join("");
+}
+
+/* 阶段导航 */
+function renderNav() {
+  document.getElementById("stageNav").innerHTML = STAGES.map(s => `
+    <div class="sn-stage">
+      <div class="sn-head" onclick="pickStage(${s.id})">
+        <span class="no">${s.id}</span><span>${s.name}</span>
+        ${s.id === P.stageId ? '<span class="tag" style="margin-left:auto">当前</span>' : ""}
+      </div>
+      ${s.id === curStage ? `<div class="sn-steps">${s.steps.map((sp, i) =>
+        `<div class="sn-step ${i === curStep ? "active" : ""}" onclick="pickStep(${i})">${sp.name}</div>`).join("")}</div>` : ""}
+    </div>`).join("");
+}
+
+function pickStage(id) { curStage = id; curStep = 0; refresh(); }
+function pickStep(i) { curStep = i; refresh(); }
+
+function refresh() {
+  renderLifecycle(); renderNav();
+  const s = stageById(curStage), step = s.steps[curStep];
+  document.getElementById("crumbStage").textContent = `第 ${s.id} 阶段 · ${s.name}`;
+  document.getElementById("crumbStep").textContent = step.name;
+  fill("secReq", step.req); fill("secLaw", step.law);
+  fill("secNotice", step.notice); fill("secRisk", step.risk);
+
+  const probs = PROBLEMS.filter(p => p.stageId === curStage && p.step === step.name);
+  document.getElementById("secProblems").innerHTML = probs.length ? probs.map(p => `
+    <div style="padding:10px 12px;background:#fffdf5;border:1px solid #fdead2;border-radius:8px;margin-bottom:10px">
+      <div style="font-size:13px;line-height:1.8">${p.desc}</div>
+      <div class="text-sm mt8">关联项目：${p.project} · ${p.date}</div>
+    </div>`).join("") : `<span class="empty">本环节暂无公开问题记录</span>`;
+
+  const exps = EXPERIENCES.filter(e => e.stageId === curStage && e.step === step.name);
+  document.getElementById("secExps").innerHTML = exps.length ? exps.map(e => `
+    <div style="padding:10px 12px;background:#f5fffc;border:1px solid #c9f0e4;border-radius:8px;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:600">✦ ${e.title}</div>
+      <div style="font-size:13px;line-height:1.8;margin-top:6px">${e.desc}</div>
+      <div class="text-sm mt8">关联项目：${e.project} · ${e.date}</div>
+    </div>`).join("") : `<span class="empty">本环节暂无公开经验记录</span>`;
+}
+function fill(id, txt) {
+  document.getElementById(id).innerHTML = txt ? escapeHtml(txt) : `<span class="empty">知识库暂未维护该内容</span>`;
+}
+function escapeHtml(t) { const d = document.createElement("div"); d.textContent = t; return d.innerHTML; }
+
+/* 实施情况 */
+const impls = [
+  { user: "王建国", date: "2026-07-15", text: "已完成本月进度款支付审批，累计支付比例 62%，未超 80% 红线；施工日志与影像资料同步归档。", imgs: 2, files: 1 }
+];
+function renderImpls() {
+  document.getElementById("implList").innerHTML = impls.map(r => `
+    <div style="padding:10px 12px;background:#f7fbf9;border:1px solid #d8efe4;border-radius:8px;margin-bottom:10px">
+      <div class="flex text-sm mb8"><b style="color:#2ba471">${r.user}</b><span>${r.date}</span>
+        ${r.imgs ? `<span>📷×${r.imgs}</span>` : ""}${r.files ? `<span>📎×${r.files}</span>` : ""}</div>
+      <div style="font-size:13px;line-height:1.8">${r.text}</div>
+    </div>`).join("");
+}
+function saveImpl() {
+  const v = document.getElementById("implInput").value.trim();
+  if (!v) { toast("请输入实施情况内容"); return; }
+  impls.unshift({ user: CURRENT_USER.name, date: "2026-08-01", text: v, imgs: 0, files: 0 });
+  document.getElementById("implInput").value = "";
+  renderImpls(); toast("实施记录已保存");
+}
+
+/* 提交问题/经验 */
+let submitType = "问题";
+function openSubmit(t) {
+  submitType = t;
+  const s = stageById(curStage);
+  document.getElementById("smTitle").textContent = "提交" + t;
+  document.getElementById("smLabel").textContent = t === "问题" ? "问题描述" : "经验描述";
+  document.getElementById("smStep").value = `${s.name} / ${s.steps[curStep].name}（项目：${P.name}）`;
+  document.getElementById("smTitleBox").style.display = t === "经验" ? "" : "none";
+  openModal("submitModal");
+}
+function doSubmit() {
+  closeModal("submitModal");
+  toast(submitType + "已提交，待内容审核员审核");
+}
+
+refresh(); renderImpls();
+</script>
+</body>
+</html>

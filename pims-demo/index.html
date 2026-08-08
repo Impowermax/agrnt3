@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首页工作台 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="card flex-between" style="padding:18px 22px">
+        <div>
+          <div style="font-size:17px;font-weight:600">您好，张项目管理 👋</div>
+          <div class="text-sm mt8">欢迎使用投资项目管理辅助系统，今天是 2026年8月1日 星期六</div>
+        </div>
+        <div class="flex">
+          <a class="btn" href="knowledge.html">查看知识库</a>
+          <a class="btn primary" href="project-new.html">＋ 新增项目</a>
+        </div>
+      </div>
+
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:18px" class="home-cols">
+        <div>
+          <div class="card">
+            <div class="card-title">快捷入口</div>
+            <div class="quick-grid">
+              <div class="quick-item" onclick="location.href='project-new.html'"><div class="qi-ico">📝</div><div class="qi-nm">新增项目</div></div>
+              <div class="quick-item" onclick="location.href='projects.html'"><div class="qi-ico">▤</div><div class="qi-nm">项目列表</div></div>
+              <div class="quick-item" onclick="location.href='problems.html'"><div class="qi-ico">⚠</div><div class="qi-nm">问题检索</div></div>
+              <div class="quick-item" onclick="location.href='experiences.html'"><div class="qi-ico">✦</div><div class="qi-nm">经验共享</div></div>
+              <div class="quick-item" onclick="location.href='dashboard.html'"><div class="qi-ico">📊</div><div class="qi-nm">BI 看板</div></div>
+              <div class="quick-item" onclick="location.href='export.html'"><div class="qi-ico">⇩</div><div class="qi-nm">数据导出</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>我单位在建项目</span><a class="extra" href="projects.html">全部项目 →</a></div>
+            <table class="table">
+              <thead><tr><th>项目名称</th><th>类型</th><th>当前阶段</th><th>进度</th><th>操作</th></tr></thead>
+              <tbody id="projectTbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-title"><span>待办事项</span></div>
+            <div id="todoList"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span>最新经验共享</span><a class="extra" href="experiences.html">更多 →</a></div>
+            <div id="expList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("index", "首页工作台");
+
+/* 统计卡片 */
+const totalAmount = PROJECTS.reduce((s, p) => s + p.amount, 0);
+const stats = [
+  { k: "投资项目总数", v: PROJECTS.length, u: "个", ico: "▤", bg: "#e8f0ff" },
+  { k: "项目总投资额", v: (totalAmount / 10000).toFixed(2), u: "亿元", ico: "¥", bg: "#e6f6ef" },
+  { k: "在建项目", v: PROJECTS.filter(p => p.status === "在建项目").length, u: "个", ico: "🚧", bg: "#fdf1e7" },
+  { k: "已收录问题 / 经验", v: PROBLEMS.length + " / " + EXPERIENCES.length, u: "条", ico: "✦", bg: "#f1eafd" }
+];
+document.getElementById("statGrid").innerHTML = stats.map(s => `
+  <div class="stat-card">
+    <div class="icon" style="background:${s.bg}">${s.ico}</div>
+    <div><div class="v">${s.v}<small>${s.u}</small></div><div class="k">${s.k}</div></div>
+  </div>`).join("");
+
+/* 在建项目表 */
+const building = PROJECTS.filter(p => p.status === "在建项目").slice(0, 5);
+document.getElementById("projectTbody").innerHTML = building.map(p => {
+  const pct = Math.round(p.stageId / 12 * 100);
+  return `<tr>
+    <td><a href="project-detail.html">${p.name}</a></td>
+    <td><span class="tag ${p.type === "信息化投资项目" ? "purple" : ""}">${p.type.replace("投资项目", "")}</span></td>
+    <td>${p.stage}</td>
+    <td style="min-width:130px"><div class="flex"><div class="progress grow"><i style="width:${pct}%"></i></div><span class="text-sm">${pct}%</span></div></td>
+    <td><a class="btn text sm" href="project-detail.html">查看</a></td>
+  </tr>`;
+}).join("");
+
+/* 待办 */
+const todos = [
+  { t: "录入「施工过程管理 - 进度款支付」实施情况", p: "市公司卷烟物流配送中心建设项目", tag: "实施情况", cls: "" },
+  { t: "「工程量清单审核」问题记录审核通过，已公开", p: "系统消息", tag: "审核", cls: "green" },
+  { t: "提交的经验「清单三级审核把关机制」待审核", p: "城区分公司办公楼改造项目", tag: "待审核", cls: "orange" },
+  { t: "项目决算审计材料补充提醒", p: "仓储智能化改造项目", tag: "提醒", cls: "red" }
+];
+document.getElementById("todoList").innerHTML = todos.map(t => `
+  <div style="padding:11px 0;border-bottom:1px dashed var(--border)">
+    <div class="flex"><span class="tag ${t.cls}">${t.tag}</span><span style="font-size:13px">${t.t}</span></div>
+    <div class="text-sm mt8" style="padding-left:2px">${t.p}</div>
+  </div>`).join("");
+
+/* 最新经验 */
+document.getElementById("expList").innerHTML = EXPERIENCES.slice(0, 3).map(e => `
+  <div style="padding:11px 0;border-bottom:1px dashed var(--border);cursor:pointer" onclick="location.href='experiences.html'">
+    <div style="font-size:13px;font-weight:500">✦ ${e.title}</div>
+    <div class="text-sm mt8">${e.stage} · ${e.step} · ${e.date}</div>
+  </div>`).join("");
+</script>
+</body>
+</html>

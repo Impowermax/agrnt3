@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目管理 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="card">
+        <div class="tabs" id="statusTabs"></div>
+        <div class="filter-bar">
+          <div class="field"><label>项目名称</label><input class="input" id="fName" placeholder="请输入项目名称关键字"></div>
+          <div class="field"><label>项目类型</label>
+            <select class="select" id="fType"><option value="">全部类型</option></select></div>
+          <div class="field"><label>当前阶段</label>
+            <select class="select" id="fStage"><option value="">全部阶段</option></select></div>
+          <button class="btn primary" onclick="renderTable()">查 询</button>
+          <button class="btn" onclick="resetFilter()">重 置</button>
+          <div class="grow" style="text-align:right">
+            <a class="btn primary" href="project-new.html">＋ 新增项目</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span id="listTitle">项目列表</span><span class="extra text-sm" id="listCount"></span></div>
+        <table class="table">
+          <thead><tr>
+            <th>序号</th><th>项目名称</th><th>项目类型</th><th>当前阶段</th>
+            <th>项目状态</th><th>投资金额（万元）</th><th>立项时间</th><th>负责人</th><th>操作</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="emptyBox"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("projects", "项目管理 / 项目列表");
+
+let curStatus = "";
+const tabs = ["", ...PROJECT_STATUS];
+const tabNames = { "": "全部" };
+document.getElementById("statusTabs").innerHTML = tabs.map(t => {
+  const cnt = t ? PROJECTS.filter(p => p.status === t).length : PROJECTS.length;
+  return `<div class="tab ${t === "" ? "active" : ""}" data-v="${t}" onclick="switchTab(this)">${tabNames[t] || t}<span class="cnt">${cnt}</span></div>`;
+}).join("");
+
+document.getElementById("fType").innerHTML += PROJECT_TYPES.map(t => `<option>${t}</option>`).join("");
+document.getElementById("fStage").innerHTML += STAGES.map(s => `<option>${s.name}</option>`).join("");
+
+function switchTab(el) {
+  document.querySelectorAll("#statusTabs .tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  curStatus = el.dataset.v;
+  renderTable();
+}
+function resetFilter() {
+  document.getElementById("fName").value = "";
+  document.getElementById("fType").value = "";
+  document.getElementById("fStage").value = "";
+  renderTable();
+}
+function renderTable() {
+  const kw = document.getElementById("fName").value.trim();
+  const tp = document.getElementById("fType").value;
+  const st = document.getElementById("fStage").value;
+  const list = PROJECTS.filter(p =>
+    (!curStatus || p.status === curStatus) &&
+    (!kw || p.name.includes(kw)) &&
+    (!tp || p.type === tp) &&
+    (!st || p.stage === st));
+  document.getElementById("listTitle").textContent = (curStatus || "全部") + "项目列表";
+  document.getElementById("listCount").textContent = `共 ${list.length} 个项目`;
+  document.getElementById("tbody").innerHTML = list.map((p, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td><a href="project-detail.html">${p.name}</a></td>
+      <td><span class="tag ${p.type === "信息化投资项目" ? "purple" : ""}">${p.type}</span></td>
+      <td>${p.stage}</td>
+      <td><span class="tag ${statusTagClass(p.status)}">${p.status}</span></td>
+      <td class="num">${fmtAmount(p.amount)}</td>
+      <td>${p.date}</td>
+      <td>${p.manager}</td>
+      <td>
+        <a class="btn text sm" href="project-detail.html">详情</a>
+        <button class="btn text sm" onclick="toast('已进入编辑模式（演示）')">编辑</button>
+      </td>
+    </tr>`).join("");
+  document.getElementById("emptyBox").innerHTML = list.length ? "" :
+    `<div class="empty-box">暂无符合条件的项目，请调整筛选条件或 <a href="project-new.html">新增项目</a></div>`;
+}
+renderTable();
+</script>
+</body>
+</html>

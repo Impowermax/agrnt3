@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统登录 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="logo-row"><div class="logo">投</div></div>
+    <h1>投资项目管理辅助系统</h1>
+    <p class="sub">Project Investment Management Auxiliary System · PIMS</p>
+    <form onsubmit="return doLogin(event)">
+      <div class="form-item">
+        <label>用户名</label>
+        <input class="input" id="username" placeholder="请输入用户名" value="zhangxm" autocomplete="username">
+      </div>
+      <div class="form-item">
+        <label>密码</label>
+        <input class="input" id="password" type="password" placeholder="请输入密码" value="123456" autocomplete="current-password">
+      </div>
+      <button class="btn primary login-btn" type="submit">登 录</button>
+    </form>
+    <div class="login-links">
+      <a href="javascript:void(0)" onclick="toast('请联系系统管理员重置密码')">忘记密码？</a>
+      <a href="javascript:void(0)" onclick="toast('请联系系统管理员开通账号')">申请账号</a>
+    </div>
+    <div class="login-tip">
+      演示账号：zhangxm / 123456（项目实施单位）<br>
+      其他角色：admin（系统管理员）、lish（内容审核员）、zhaold（管理层）
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+function doLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById("username").value.trim();
+  const p = document.getElementById("password").value;
+  if (!u || !p) { toast("请输入用户名和密码"); return false; }
+  toast("登录成功，正在进入系统…");
+  setTimeout(() => location.href = "index.html", 600);
+  return false;
+}
+</script>
+</body>
+</html>

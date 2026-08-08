@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据导出 - 投资项目管理辅助系统</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <div class="main">
+    <div id="topbar-mount"></div>
+    <div class="content">
+
+      <div class="card">
+        <div class="card-title">表单式内容导出（Excel）</div>
+        <div class="form-grid" style="max-width:none">
+          <div class="form-item">
+            <label><span class="req">*</span>选择项目</label>
+            <select class="select" id="selProject" onchange="renderPreview()"></select>
+          </div>
+          <div class="form-item">
+            <label>项目阶段（默认全部）</label>
+            <select class="select" id="selStage" onchange="renderPreview()">
+              <option value="">全部阶段</option>
+            </select>
+          </div>
+          <div class="form-item full">
+            <label>导出字段（按选取字段以表单式导出）</label>
+            <div class="flex" style="flex-wrap:wrap;gap:14px" id="fieldChecks">
+              <label class="flex" style="gap:5px"><input type="checkbox" checked data-f="req"> 工作要求</label>
+              <label class="flex" style="gap:5px"><input type="checkbox" checked data-f="notice"> 注意事项</label>
+              <label class="flex" style="gap:5px"><input type="checkbox" checked data-f="risk"> 潜在风险</label>
+              <label class="flex" style="gap:5px"><input type="checkbox" checked data-f="law"> 法律政策制度依据</label>
+              <label class="flex" style="gap:5px"><input type="checkbox" data-f="exp"> 经验共享</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn" onclick="renderPreview()">预 览</button>
+          <button class="btn primary" onclick="doExport()">⇩ 导出 Excel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>导出内容预览</span><span class="extra text-sm" id="pvCount"></span></div>
+        <div style="overflow-x:auto">
+          <table class="table" id="pvTable" style="min-width:900px"></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+renderLayout("export", "数据导出");
+
+document.getElementById("selProject").innerHTML = PROJECTS.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+document.getElementById("selStage").innerHTML += STAGES.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+document.getElementById("fieldChecks").addEventListener("change", renderPreview);
+
+const FIELD_DEF = {
+  req: ["工作要求", s => s.req], notice: ["注意事项", s => s.notice],
+  risk: ["潜在风险", s => s.risk], law: ["法律政策制度依据", s => s.law],
+  exp: ["经验共享", s => (EXPERIENCES.find(e => e.step === s.name && e.stageId === s._sid) || {}).desc || "—"]
+};
+const FIELD_LABEL = { req: "工作要求", notice: "注意事项", risk: "潜在风险", law: "法律政策制度依据", exp: "经验共享" };
+
+function renderPreview() {
+  const sid = +document.getElementById("selStage").value;
+  const fields = [...document.querySelectorAll("#fieldChecks input:checked")].map(i => i.dataset.f);
+  const stages = sid ? [stageById(sid)] : STAGES;
+
+  const head = `<thead><tr><th>序号</th><th>项目阶段</th><th>关键环节</th>${fields.map(f => `<th>${FIELD_LABEL[f]}</th>`).join("")}</tr></thead>`;
+  let rows = "", n = 0;
+  stages.forEach(st => st.steps.forEach(sp => {
+    n++;
+    const ctx = { ...sp, _sid: st.id };
+    rows += `<tr><td>${n}</td><td>${st.name}</td><td>${sp.name}</td>${fields.map(f =>
+      `<td style="max-width:280px;font-size:12.5px;line-height:1.7">${f === "exp" ? FIELD_DEF[f][1](ctx) : (ctx[f] || "—")}</td>`).join("")}</tr>`;
+  }));
+  document.getElementById("pvTable").innerHTML = head + `<tbody>${rows}</tbody>`;
+  document.getElementById("pvCount").textContent = `共 ${n} 个关键环节 · ${fields.length} 个导出字段`;
+}
+function doExport() {
+  const pn = document.getElementById("selProject");
+  toast("已生成导出文件：" + pn.options[pn.selectedIndex].text + "_全周期内容.xlsx（演示）");
+}
+renderPreview();
+</script>
+</body>
+</html>
