@@ -24,10 +24,9 @@ const activeStatus = ref<ProjectStatus | ''>('')
 
 const STATUS_TABS: { label: string; value: ProjectStatus | '' }[] = [
   { label: '全部', value: '' },
-  { label: '新增项目', value: '新增项目' },
   { label: '拟建项目', value: '拟建项目' },
   { label: '在建项目', value: '在建项目' },
-  { label: '建设完毕', value: '建设完毕' }
+  { label: '竣工项目', value: '竣工项目' }
 ]
 
 const { list, pagedList, loading, pageNum, pageSize, total, load, handlePageChange, handleSizeChange } =

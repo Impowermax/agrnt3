@@ -35,3 +35,19 @@ pnpm-debug.log*
 
 # OS files
 Thumbs.db
+
+# Trae IDE / Agent local
+.trae/
+.git/
+C:/Users/TheRain/.trae-cn/**
+
+# Office temp lock files
+~$*
+~WRL*.tmp
+
+# Temporary text files
+新建文本文档*.txt
+
+# Backup directory (workspace archive)
+备份/
+

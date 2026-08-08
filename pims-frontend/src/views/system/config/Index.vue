@@ -2,8 +2,8 @@
 /**
  * 系统配置（PRD 5.8 · 系统管理 - 项目类别/阶段配置/字段配置/内容审核/制度文件）
  */
-import { computed, onMounted, ref } from 'vue'
-import { ElMessage, ElMessageBox, type TabsPaneContext } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { ElMessage, ElMessageBox, type FormInstance, type TabsPaneContext } from 'element-plus'
 import { Plus, Upload, Download, Refresh } from '@element-plus/icons-vue'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import EmptyState from '@/components/layout/EmptyState.vue'
@@ -46,9 +46,7 @@ const CATEGORIES: ProjectCategory[] = [
 const stageConfigType = ref('固定资产投资项目')
 const stageConfigLoading = ref(false)
 
-/** 按项目类型过滤阶段列表（演示：两种类型共用同一套 STAGES） */
 const filteredStages = computed<Stage[]>(() => {
-  // 演示：信息化投资项目取前 9 个阶段，固定资产投资项目取全部 12 个
   return stageConfigType.value === '信息化投资项目'
     ? knowledgeStore.stages.slice(0, 9)
     : knowledgeStore.stages
@@ -64,7 +62,42 @@ async function loadStageConfig(): Promise<void> {
   }
 }
 
-/** 字段配置（静态：对应 PRD 字段配置管理） */
+/** 阶段完成天数编辑 */
+const durationDialogVisible = ref(false)
+const durationFormRef = ref<FormInstance>()
+const durationForm = reactive<{ id: number; name: string; duration: number | null }>({
+  id: 0,
+  name: '',
+  duration: null
+})
+const durationRules = {
+  duration: [
+    { required: true, message: '请输入完成天数', trigger: 'blur' },
+    { type: 'number', min: 1, max: 365, message: '天数应在 1-365 之间', trigger: 'blur' }
+  ]
+}
+
+function openDurationDialog(stage: Stage): void {
+  durationForm.id = stage.id
+  durationForm.name = stage.name
+  durationForm.duration = stage.duration ?? null
+  durationDialogVisible.value = true
+}
+
+async function saveDuration(): Promise<void> {
+  if (!durationFormRef.value) return
+  await durationFormRef.value.validate(async (valid) => {
+    if (!valid) return
+    const target = knowledgeStore.stages.find((s) => s.id === durationForm.id)
+    if (target) {
+      target.duration = durationForm.duration as number
+    }
+    ElMessage.success(`「${durationForm.name}」完成天数已更新为 ${durationForm.duration} 天（演示）`)
+    durationDialogVisible.value = false
+  })
+}
+
+/** 字段配置（静态） */
 const FIELD_CONFIG = [
   { name: '工作要求', desc: '关键节点、必要事项的详细说明和规范要求', source: '知识库维护', required: true, show: true },
   { name: '法律政策制度依据', desc: '相关法律法规、行业制度条文', source: '知识库维护', required: true, show: true },
@@ -131,10 +164,6 @@ async function deleteFile(file: PolicyFile): Promise<void> {
   fileList.value = fileList.value.filter((f) => f.id !== file.id)
   ElMessage.success('文件已删除（演示）')
 }
-
-onMounted(() => {
-  // 字段配置为静态数据，无需加载
-})
 </script>
 
 <template>
@@ -197,8 +226,15 @@ onMounted(() => {
               </template>
             </el-table-column>
             <el-table-column prop="steps.length" label="环节数" width="80" align="center" />
-            <el-table-column label="操作" width="180" fixed="right">
-              <template #default>
+            <el-table-column label="完成天数" width="110" align="center">
+              <template #default="{ row }">
+                <span v-if="row.duration" class="stage-duration">{{ row.duration }} 天</span>
+                <span v-else class="text-tertiary">未设置</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="220" fixed="right">
+              <template #default="{ row }">
+                <el-button v-permission="['系统管理员']" text type="primary" size="small" @click="openDurationDialog(row)">设置天数</el-button>
                 <el-button v-permission="['系统管理员']" text type="primary" size="small" @click="ElMessage.info('编辑阶段（演示）')">编辑</el-button>
                 <el-button v-permission="['系统管理员']" text type="primary" size="small" @click="ElMessage.info('上移（演示）')">↑</el-button>
                 <el-button v-permission="['系统管理员']" text type="primary" size="small" @click="ElMessage.info('下移（演示）')">↓</el-button>
@@ -301,6 +337,45 @@ onMounted(() => {
         </el-tab-pane>
       </el-tabs>
     </div>
+
+    <!-- 阶段完成天数编辑弹窗 -->
+    <el-dialog
+      v-model="durationDialogVisible"
+      title="设置阶段完成天数"
+      width="420px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="durationFormRef"
+        :model="durationForm"
+        :rules="durationRules"
+        label-width="100px"
+      >
+        <el-form-item label="阶段名称">
+          <span style="font-weight: 600">{{ durationForm.name }}</span>
+        </el-form-item>
+        <el-form-item label="完成天数" prop="duration">
+          <el-input-number
+            v-model="durationForm.duration"
+            :min="1"
+            :max="365"
+            controls-position="right"
+            style="width: 200px"
+            placeholder="请输入"
+          />
+          <span style="margin-left: 8px; color: var(--pims-text-tertiary)">天</span>
+        </el-form-item>
+        <el-form-item>
+          <span class="text-tertiary" style="font-size: 12px">
+            用于项目阶段计划周期管理，系统将按此天数对项目阶段进度进行预警提示。
+          </span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="durationDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveDuration">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -313,5 +388,10 @@ onMounted(() => {
     gap: var(--pims-space-3);
     margin-bottom: var(--pims-space-4);
   }
+}
+
+.stage-duration {
+  font-weight: 600;
+  color: var(--pims-primary);
 }
 </style>

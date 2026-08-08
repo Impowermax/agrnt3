@@ -18,7 +18,7 @@ export interface UseSearchReturn<Q extends Record<string, unknown>> {
  * 搜索筛选组合式函数：维护查询条件、触发查询、重置
  */
 export function useSearch<Q extends Record<string, unknown>>(options: UseSearchOptions<Q>): UseSearchReturn<Q> {
-  const query = ref({ ...options.defaultQuery }) as Ref<UnwrapRef<Q>>
+  const query = ref({ ...options.defaultQuery } as Q)
 
   function search(): void {
     void options.onSearch({ ...query.value } as Q)

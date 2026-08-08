@@ -28,6 +28,8 @@ export interface Stage {
   name: string
   /** 该阶段下的关键环节 */
   steps: StepInfo[]
+  /** 阶段完成天数（用于阶段计划周期管理） */
+  duration?: number
 }
 
 /** 项目信息 */
@@ -51,6 +53,8 @@ export interface Project {
   manager: string
   /** 实施单位 */
   org?: string
+  /** 当前阶段计划结束日期（yyyy-MM-dd），用于阶段结束前预警 */
+  stageEndDate?: string
 }
 
 /** 新增项目表单 */
